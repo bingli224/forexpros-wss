@@ -42,9 +42,7 @@
 ///	https://stackoverflow.com/questions/26946646/rust-package-with-both-a-library-and-a-binary/26946705#26946705
 ///	https://www.reddit.com/r/rust/comments/k5sb9o/tokio_block_onjoinhandle_freeze_randomly/
  
-pub mod forexpros;
-
-use forexpros::push;
+use forexpros_wss::push;
 
 fn main ( ) {
 	let pair_id = "945629";	// BTC/USD

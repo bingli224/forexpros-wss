@@ -42,4 +42,5 @@
 ///	https://stackoverflow.com/questions/26946646/rust-package-with-both-a-library-and-a-binary/26946705#26946705
 ///	https://www.reddit.com/r/rust/comments/k5sb9o/tokio_block_onjoinhandle_freeze_randomly/
 
-pub mod forexpros;
+pub mod push;
+pub mod data;
