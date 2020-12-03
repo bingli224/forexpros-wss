@@ -1,0 +1,32 @@
+[package]
+name = "forexpros"
+version = "0.1.20201203"
+authors = ["Supot Chainiramitkul <bingli224@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "forexpros_wss"
+path = "src/lib.rs"
+
+[[bin]]
+name = "runner"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = '1.0.117', features = [ 'derive' ] }
+serde_json = '1.0.60'
+
+futures = '0.3.8'
+futures-util = '0.3.8'
+
+tokio = { version = '0.3.5', features = [ 'rt', 'rt-multi-thread', 'time' ] }
+
+tungstenite = "0.11.1"
+tokio-tungstenite = { version = "0.12.0", features = [ "tls" ] }
+
+rand = '0.7.3'
+
+#[dev-dependencies]
+regex = '1.4.2'
