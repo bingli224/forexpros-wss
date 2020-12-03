@@ -1,16 +1,15 @@
 [package]
-name = "forexpros"
-version = "0.1.20201203"
+name = "forexpros_wss"
+version = "0.2.2"
 authors = ["Supot Chainiramitkul <bingli224@gmail.com>"]
 edition = "2018"
+
+keywords = ["websocket", "websockets", "async", "tokio", "serde"]
+caterogies = ["asynchronus", "network-programming", "web-programming", "web-programming::websocket"]
 
 [lib]
 name = "forexpros_wss"
 path = "src/lib.rs"
-
-[[bin]]
-name = "runner"
-path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
