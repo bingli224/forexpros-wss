@@ -41,6 +41,15 @@
 ///	https://github.com/websockets-rs/rust-websocket/issues/160
 ///	https://stackoverflow.com/questions/26946646/rust-package-with-both-a-library-and-a-binary/26946705#26946705
 ///	https://www.reddit.com/r/rust/comments/k5sb9o/tokio_block_onjoinhandle_freeze_randomly/
+/// 
+/// 18:36 THA 07/12/2020
+/// 
+/// # References
+/// 
+/// https://blog.yoshuawuyts.com/streams-concurrency/
+/// https://stackoverflow.com/questions/56228614/how-to-change-the-value-of-an-arcu64-in-a-struct
+/// https://stackoverflow.com/questions/53045522/share-arc-between-closures
+/// https://www.reddit.com/r/learnrust/comments/hekxyb/is_atomicbool_safe_to_use_in_async_code/
  
 use forexpros_wss::push;
 
@@ -50,6 +59,8 @@ fn main ( ) {
 	
 	let handler = |s| {
 		println ! ( "INFO: {:?}", s );
+		
+		Ok (())
 	};
 
 	let stream = push::Stream::new ( pair_id.to_string ( ), handler )

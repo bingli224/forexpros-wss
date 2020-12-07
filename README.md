@@ -29,6 +29,8 @@ fn main ( ) {
 	
 	let handler = |s| {
 		println ! ( "INFO: {:?}", s );
+		
+		OK (())
 	};
 
 	let stream = push::Stream::new ( pair_id.to_string ( ), handler )

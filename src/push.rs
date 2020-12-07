@@ -34,6 +34,10 @@
 /// TODO: add feature to not deserialize unnecessary data
 /// TODO: get more pairs at same time.
 /// TODO: separate integration test
+/// 
+/// 16:14 THA 07/12/2020
+/// 
+/// Change: handle_
 
 use tokio_tungstenite::{
 	self,
@@ -66,9 +70,20 @@ pub struct Stream {
 }
 
 impl Stream {
+	/// Create connection to the server with specific pair id. The new data is sent to given handler in Snapshot struct.
+	/// 
+	/// Pair id examples:
+	/// 	"945629"	BTC/USD
+	/// 	"1058142"	ETC/USD
+	/// 	"8984"	Hang Seng Futures
+	/// 	"8873"	Dow Jones Industrial Average (DJI)
+	/// 	"14958"	NASDAQ Composite
+	/// 	"8830"	Gold Futures
+	/// 
+	/// For further pair id, hack the websocket in some browser debugger, such as Chrome inspect.
 	pub fn new <'a, F> ( pair_id: String, handler: F ) -> Result<Self, ()>
 	where
-		F: Fn ( Snapshot ) + Send + Sync + 'static,
+		F: Fn ( Snapshot ) -> Result<(), ()> + Send + Sync + 'static,
 	{
 		let pair_id_str = pair_id.clone ( ).into_boxed_str ( );
 
@@ -94,7 +109,7 @@ impl Stream {
 						Err ( () )
 					}
 				} )
-				.and_then ( |(mut tx, rx)| async move {
+				.and_then ( |(mut tx, mut rx)| async move {
 					// TODO: react to the server
 					tx.send ( format ! ( "[\"{{\\\"_event\\\":\\\"bulk-subscribe\\\",\\\"tzID\\\":\\\"8\\\",\\\"message\\\":\\\"pid-{}:\\\"}}\"]", &pair_id ).into ( ) )
 						.await
@@ -119,18 +134,43 @@ impl Stream {
 					
 					let key = format ! ( "pid-{}::{{", pair_id );
 					let key = key.as_str ( );
-
-					rx.for_each ( |msg| async {
+					
+					while let Some ( msg ) = rx.next ( ).await {
 						let msg = msg.unwrap ( );
 						let msg = msg.to_text ( ).unwrap ( );
 						if msg.contains ( key ) {
-							handler (
+							let stop = handler (
 								Snapshot::from_str (
 									msg
 								)
 							);
+							
+							if let Err ( _ ) = stop {
+								return Ok(());
+							}
 						}
-					} ).await;
+					}
+
+					/*
+					how to handle the panic in WebSocketStream :: !UnwindSafe
+					//rx.for_each_concurrent (  2, |msg| async {
+					rx.for_each ( |msg| async {
+						let msg = msg.unwrap ( );
+						let msg = msg.to_text ( ).unwrap ( );
+						if msg.contains ( key ) {
+							let stop = handler (
+								Snapshot::from_str (
+									msg
+								)
+							);
+							
+							if stop == true {
+								panic ! ( );
+							}
+						}
+					} )
+					.await;
+					*/
 							
 					println ! ( "EOD" );
 					Ok ( ( ) )
@@ -184,27 +224,46 @@ where
 mod tests {
 	use super::*;
 
+	#[cfg(ignore)]
+	#[test]
+	pub fn test_new_panic ( ) {
+		unimplemented! ( );
+	}
+
 	#[test]
 	pub fn test_new ( ) {
+		use std::sync::{
+			Arc,
+			Mutex,
+		};
+
 		let pair_id = "945629";	// BTC/USD
 		//let pair_id = "8984";	// HK50 future
-		
-		let handler = |s| {
+
+		let found_info = Arc::new ( Mutex::new ( false ) );
+		let found_info_clone = found_info.clone ( );
+	
+		let handler = move |s| {
 			println ! ( "input: {:?}", s );
+			
+			*found_info_clone.lock().unwrap ( ) = true;
+
+			// return Err to exit
+			Err ( ( ) )
 		};
 
 		let stream = Stream::new ( pair_id.to_string ( ), handler ).expect ( "Failed to create stream" );
 		
 		println ! ( "stream.spawn_handler: {:?}", stream.stream_handle_spawn );
-		let r = tokio::runtime::Runtime::new ( )
+		tokio::runtime::Runtime::new ( )
 				.unwrap ( )
-				.block_on ( async {
-					println ! ( "inner" );
-					stream.stream_handle_spawn.await
-				}
-				);
+				.block_on ( stream.stream_handle_spawn )
+				.unwrap ( )
+				.unwrap ( )
+				;
+
 		assert_eq! ( true,
-			r.is_ok ( )
+			*found_info.lock().unwrap ( )
 		);
 	}
 
