@@ -37,7 +37,7 @@
 /// 
 /// 16:14 THA 07/12/2020
 /// 
-/// Change: handle_
+/// Change: handler() returns Result<(), ()> to stop the stream
 
 use tokio_tungstenite::{
 	self,
