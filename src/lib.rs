@@ -5,7 +5,7 @@
 /// # Example
 /// 
 /// ```
-/// use forexpros::push;
+/// use forexpros_wss::push;
 /// 
 /// fn main ( ) {
 /// 	let pair_id = "945629";	// BTC/USD
@@ -13,6 +13,9 @@
 /// 	
 /// 	let handler = |s| {
 /// 		println ! ( "INFO: {:?}", s );
+///		
+///         // stop the stream
+///		    Err (())
 /// 	};
 /// 
 /// 	let stream = push::Stream::new ( pair_id.to_string ( ), handler )
