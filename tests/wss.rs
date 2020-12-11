@@ -64,7 +64,7 @@ fn test_access_to_server ( /*pid: 'static &str*/ ) {
 					Err ( () )
 				}
 			} )
-			.and_then ( |(mut tx, rx)| async move {
+			.and_then ( |(mut tx, mut rx)| async move {
 				// TODO: react to the server
 				tx.send ( format ! ( "[\"{{\\\"_event\\\":\\\"bulk-subscribe\\\",\\\"tzID\\\":\\\"8\\\",\\\"message\\\":\\\"pid-{}:\\\"}}\"]", &pair_id ).into ( ) )
 					.await
@@ -89,12 +89,20 @@ fn test_access_to_server ( /*pid: 'static &str*/ ) {
 					} );
 				
 				println ! ( "rx.for_each()..." );
-				// TODO: inspect the inputs
-				rx.for_each ( |msg| async move {
-					println ! ( "msg: {:?}", msg.unwrap ( ).to_text ( ) );
-				} ).await;
+				
+				// exit when got updated status of instrument
+				let target = format ! ( r#""{}\\"#, pair_id );
+				while let Some ( msg ) = rx.next ( ).await {
+					let msg = msg.unwrap ( ).into_text ( ).unwrap ( );
+					
+					println ! ( "msg: {:?}", msg );
+
+					if msg.contains ( &target ) {
+						break;
+					}
+				}
 						
-				println ! ( "EOD" );
+				println ! ( "EOD: Found updated info" );
 				Ok ( ( ) )
 			} )
 			.or_else ( |e| async move {
