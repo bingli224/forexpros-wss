@@ -52,8 +52,11 @@
 /// https://www.reddit.com/r/learnrust/comments/hekxyb/is_atomicbool_safe_to_use_in_async_code/
  
 use forexpros_wss::push;
+use env_logger;
 
 fn main ( ) {
+	let _ = env_logger::try_init();
+
 	let pair_id = "945629";	// BTC/USD
 	//let pair_id = "8984";	// HK50 future
 	
@@ -62,15 +65,18 @@ fn main ( ) {
 		
 		Ok (())
 	};
+	
+	let runtime = tokio::runtime::Runtime::new ( )
+		.unwrap ( )
+		;
 
-	let stream = push::Stream::new ( pair_id.to_string ( ), handler )
+	let stream = push::Stream::new ( pair_id.to_string ( ), &runtime, handler )
 		.expect ( "Failed to create stream" );
 	
 	println ! ("main: stream.pair_id={}", stream.pair_id);
 	println ! ("main: stream.handler={:?}", stream.stream_handle_spawn);
 	
-	tokio::runtime::Runtime::new ( )
-		.unwrap ( )
+	runtime
 		.block_on (
 			stream.stream_handle_spawn
 		).unwrap ( ).unwrap ( );

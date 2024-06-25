@@ -1,8 +1,9 @@
 [package]
 name = "forexpros_wss"
-version = "0.2.4"
+version = "0.3.0"
 authors = ["Supot Chainiramitkul <bingli224@gmail.com>"]
-edition = "2018"
+edition = "2021"
+resolver = "2"
 
 keywords = ["websocket", "websockets", "async", "tokio", "serde"]
 caterogies = ["asynchronus", "network-programming", "web-programming", "web-programming::websocket"]
@@ -20,12 +21,15 @@ serde_json = '1.0.60'
 futures = '0.3.8'
 futures-util = '0.3.8'
 
-tokio = { version = '1.26.0', features = [ 'rt', 'rt-multi-thread', 'time' ] }
+tokio = { default-features = false, version = '1.26.0', features = [ 'rt', 'rt-multi-thread', 'time', 'macros' ] }
 
-tungstenite = "0.18.0"
-tokio-tungstenite = { version = "0.18.0", features = [ "native-tls" ] }
+tungstenite = "0.19.0"
+tokio-tungstenite = { version = "0.19.0", features = [ "native-tls" ] }
 
 rand = '0.8.5'
 
+log = '0.4.18'
+
 #[dev-dependencies]
 regex = '1.4.2'
+env_logger = '0.10.0'

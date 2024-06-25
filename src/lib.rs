@@ -18,17 +18,18 @@
 ///		    Err (())
 /// 	};
 /// 
-/// 	let stream = push::Stream::new ( pair_id.to_string ( ), handler )
+/// 	let runtime = tokio::runtime::Runtime::new ( )
+/// 		.unwrap ( );
+/// 
+/// 	let stream = push::Stream::new ( pair_id.to_string ( ), &runtime, handler )
 /// 		.expect ( "Failed to create stream" );
 /// 	
 /// 	println ! ("main: stream.pair_id={}", stream.pair_id);
 /// 	println ! ("main: stream.handler={:?}", stream.stream_handle_spawn);
 /// 	
-/// 	tokio::runtime::Runtime::new ( )
-/// 		.unwrap ( )
-/// 		.block_on (
-/// 			stream.stream_handle_spawn
-/// 		).unwrap ( ).unwrap ( );
+/// 	runtime.block_on (
+/// 		stream.stream_handle_spawn
+/// 	).unwrap ( ).unwrap ( );
 /// }
 /// ```
 /// 
@@ -44,6 +45,10 @@
 ///	https://github.com/websockets-rs/rust-websocket/issues/160
 ///	https://stackoverflow.com/questions/26946646/rust-package-with-both-a-library-and-a-binary/26946705#26946705
 ///	https://www.reddit.com/r/rust/comments/k5sb9o/tokio_block_onjoinhandle_freeze_randomly/
+/// 
+/// 23:44 THA 25/06/2024
+/// 
+/// Get tokio::runtime::Runtime as borrowed parameter instead.
 
 pub mod push;
 pub mod data;

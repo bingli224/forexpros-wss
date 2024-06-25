@@ -59,17 +59,19 @@ use futures_util::{
 	stream::StreamExt,
 };
 
+use log::debug;
+
 use crate::data::Snapshot;
 
 /// Stream to the server, keep returning the Snapshot from wss server
 /// to Fn given in Stream::new(..)
 pub struct Stream {
 	pub stream_handle_spawn: JoinHandle<Result<(),()>>,
-	pub runtime: runtime::Runtime,
 	pub pair_id: Box<str>,
 }
 
 impl Stream {
+	
 	/// Create connection to the server with specific pair id. The new data is sent to given handler in Snapshot struct.
 	/// 
 	/// Pair id examples:
@@ -81,21 +83,22 @@ impl Stream {
 	/// 	"8830"	Gold Futures
 	/// 
 	/// For further pair id, hack the websocket in some browser debugger, such as Chrome inspect.
-	pub fn new <'a, F> ( pair_id: String, handler: F ) -> Result<Self, ()>
+	pub fn new <'a, F> ( pair_id: String, runtime: &runtime::Runtime, handler: F ) -> Result<Self, ()>
 	where
 		F: Fn ( Snapshot ) -> Result<(), ()> + Send + Sync + 'static,
 	{
 		let pair_id_str = pair_id.clone ( ).into_boxed_str ( );
 
 		// https://stackoverflow.com/questions/61752896/how-to-create-a-dedicated-threadpool-for-cpu-intensive-work-in-tokio
-		let rt_main = runtime::Runtime::new ( ).unwrap ( );
-		let rt_heartbeat = rt_main
+		let rt_main = runtime.handle ( );
+		let rt_heartbeat = runtime
 			.handle ( ).clone ( );
 
 		let stream = Stream {
 			stream_handle_spawn: rt_main
 			.spawn ( async {
 				let url = generate_stream_url ( );
+				debug ! ( "URL: {}", url );
 				tokio_tungstenite::connect_async (
 					&url
 				)
@@ -181,7 +184,6 @@ impl Stream {
 				} )
 				.await
 			} ),
-			runtime: rt_main,	// keep this runtime in the same or outer scope of the spawn
 			pair_id: pair_id_str,
 		};
 		
@@ -251,16 +253,18 @@ mod tests {
 			// return Err to exit
 			Err ( ( ) )
 		};
+		
+		let runtime = tokio::runtime::Runtime::new ( ).unwrap ( );
 
-		let stream = Stream::new ( pair_id.to_string ( ), handler ).expect ( "Failed to create stream" );
+		let stream = Stream::new ( pair_id.to_string ( ), &runtime, handler ).expect ( "Failed to create stream" );
 		
 		println ! ( "stream.spawn_handler: {:?}", stream.stream_handle_spawn );
-		tokio::runtime::Runtime::new ( )
-				.unwrap ( )
-				.block_on ( stream.stream_handle_spawn )
-				.unwrap ( )
-				.unwrap ( )
-				;
+		runtime
+			.handle ( )
+			.block_on ( stream.stream_handle_spawn )
+			.unwrap ( )
+			.unwrap ( )
+			;
 
 		assert_eq! ( true,
 			*found_info.lock().unwrap ( )
